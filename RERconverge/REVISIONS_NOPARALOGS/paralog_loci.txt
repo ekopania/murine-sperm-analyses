@@ -1,0 +1,12 @@
+ENSMUSP00000017142-mafft-cds.filter.AAreplace
+ENSMUSP00000042389-mafft-cds.filter.AAreplace
+ENSMUSP00000017144-mafft-cds.filter.AAreplace
+ENSMUSP00000045430-mafft-cds.filter.AAreplace
+ENSMUSP00000017148-mafft-cds.filter.AAreplace
+ENSMUSP00000056681-mafft-cds.filter.AAreplace
+ENSMUSP00000027569-mafft-cds.filter.AAreplace
+ENSMUSP00000065502-mafft-cds.filter.AAreplace
+ENSMUSP00000034610-mafft-cds.filter.AAreplace
+ENSMUSP00000108603-mafft-cds.filter.AAreplace
+ENSMUSP00000037222-mafft-cds.filter.AAreplace
+ENSMUSP00000128732-mafft-cds.filter.AAreplace
