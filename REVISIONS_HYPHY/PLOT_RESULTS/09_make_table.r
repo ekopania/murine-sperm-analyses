@@ -1,38 +1,48 @@
 #PURPOSE: Make a giant table combining RERconverge, dNdS, and selection test results
 
 #Read in molecular evolution data; format protein ID names if necessary
-rerconverge<-read.csv("/uufs/chpc.utah.edu/common/HIPAA/u6035720/MURINAE/RERconverge/NEW_RTM_DATA_NOV2022/RERconverge_output.logRTM_binary_residuals.OUmodel.RTMspeciesOnly.withPermulationsSSM.customSSM.customSisters.csv", header=TRUE)
+rerconverge<-read.csv("/ix3/nclark/ekopania/MURINAE_REVISIONS/RERconverge_noParalogs/RERconverge_output.logRTM_binary_residuals.OUmodel.RTMspeciesOnly.withPermulationsSSM.customSSM.fromMasterTree.csv", header=TRUE)
 rerconverge$X<-unlist(sapply(rerconverge$X, function(x) sub("-mafft-cds.filter.AAreplace", "", x)))
+#Remove paralogs from RERconverge results
+paralogs<-scan("/ix3/nclark/ekopania/MURINAE_REVISIONS/RERconverge_noParalogs/paralog_loci.txt", what=character())
+rerconverge<-rerconverge[which(!(rerconverge$X %in% paralogs)),]
 
-dnds<-read.table("/uufs/chpc.utah.edu/common/HIPAA/u6035720/MURINAE/DNDS_BY_SPERM_STAGE/PAML/RTM_SET_pared_M0/dnds.RTM_SET_pared_M0.txt", header=TRUE)
+#Read in data from all BUSTED runs
+srv_dtMNM<-read.csv("/ix3/nclark/ekopania/MURINAE_REVISIONS/HYPHY_busted/busted_output.OUfg_fullReproSet.yesSRV_dtMNM.csv", header=TRUE, comment.char="#")
+srv_noMNM<-read.csv("/ix3/nclark/ekopania/MURINAE_REVISIONS/HYPHY_busted/busted_output.OUfg_fullReproSet.yesSRV_noMNM.csv", header=TRUE, comment.char="#")
+noSRV_noMNM<-read.csv("/ix3/nclark/ekopania/MURINAE_REVISIONS/HYPHY_busted/busted_output.OUfg_fullReproSet.noSRV_noMNM.csv", header=TRUE, comment.char="#")
 
-posSelec<-read.table("/uufs/chpc.utah.edu/common/HIPAA/u6035720/MURINAE/DNDS_BY_SPERM_STAGE/PAML/pos_selec.pValCor.m1aVm2a.txt", header=TRUE)
-#relax<-read.table("/uufs/chpc.utah.edu/common/HIPAA/u6035720/MURINAE/DNDS_BY_SPERM_STAGE/PAML/pos_selec.pValCor.m1aVbsnull.txt", header=TRUE)
-relax<-read.table("/scratch/general/pe-nfs1/kopania/murines/PAML/pos_selec.pValCor.sigOnly.posOnly.m1aVbsnull.txt", header=TRUE)
-bs<-read.table("/uufs/chpc.utah.edu/common/HIPAA/u6035720/MURINAE/DNDS_BY_SPERM_STAGE/PAML/pos_selec.pValCor.bsTest.txt", header=TRUE)
+srv_dtMNM$protID<-unlist(sapply(srv_dtMNM$file, function(x) gsub("-mafft-cds.filter.json", "", x)))
+srv_noMNM$protID<-unlist(sapply(srv_noMNM$file, function(x) gsub("-mafft-cds.filter.json", "", x)))
+noSRV_noMNM$protID<-unlist(sapply(noSRV_noMNM$file, function(x) gsub("-mafft-cds.filter.json", "", x)))
+
+#Read in BUSTED model-averaged p-vals
+model_avg_ps<-read.csv("/ix3/nclark/ekopania/MURINAE_REVISIONS/PLOT_MOLEC_EVO/busted_output.OUfg_fullReproSet.model_averaged_pvals.csv", header=TRUE, col.names=c("protID","pval"))
+model_avg_ps$p.adj<-p.adjust(model_avg_ps$pval, method="BH")
 
 #Read in gene sets for tissues/cell types
-bd<-scan("/uufs/chpc.utah.edu/common/HIPAA/u6035720/MURINAE/REPRO_PROTEIN_LISTS/prot_list.BD.any.txt", what=character())
-bu<-scan("/uufs/chpc.utah.edu/common/HIPAA/u6035720/MURINAE/REPRO_PROTEIN_LISTS/prot_list.BU.any.txt", what=character())
-cg<-scan("/uufs/chpc.utah.edu/common/HIPAA/u6035720/MURINAE/REPRO_PROTEIN_LISTS/prot_list.CG.any.txt", what=character())
-dp<-scan("/uufs/chpc.utah.edu/common/HIPAA/u6035720/MURINAE/REPRO_PROTEIN_LISTS/prot_list.DP.any.txt", what=character())
-vp<-scan("/uufs/chpc.utah.edu/common/HIPAA/u6035720/MURINAE/REPRO_PROTEIN_LISTS/prot_list.VP.any.txt", what=character())
-sv<-scan("/uufs/chpc.utah.edu/common/HIPAA/u6035720/MURINAE/REPRO_PROTEIN_LISTS/prot_list.SV.any.txt", what=character())
+som<-scan("/ix3/nclark/ekopania/MURINAE_REVISIONS/REPRO_PROTEIN_LISTS/prot_list.greenEtal2018.somatic.txt", what=character())
+spg<-scan("/ix3/nclark/ekopania/MURINAE_REVISIONS/REPRO_PROTEIN_LISTS/prot_list.greenEtal2018.spermatogonia.txt", what=character())
+pre<-scan("/ix3/nclark/ekopania/MURINAE_REVISIONS/REPRO_PROTEIN_LISTS/prot_list.greenEtal2018.prelep.txt", what=character())
+spc<-scan("/ix3/nclark/ekopania/MURINAE_REVISIONS/REPRO_PROTEIN_LISTS/prot_list.greenEtal2018.spermatocytes.txt", what=character())
+spd<-scan("/ix3/nclark/ekopania/MURINAE_REVISIONS/REPRO_PROTEIN_LISTS/prot_list.greenEtal2018.spermatids.txt", what=character())
+elo<-scan("/ix3/nclark/ekopania/MURINAE_REVISIONS/REPRO_PROTEIN_LISTS/prot_list.greenEtal2018.elongating.txt", what=character())
 
-som<-scan("/uufs/chpc.utah.edu/common/HIPAA/u6035720/MURINAE/REPRO_PROTEIN_LISTS/prot_list.greenEtal2018.somatic.txt", what=character())
-spg<-scan("/uufs/chpc.utah.edu/common/HIPAA/u6035720/MURINAE/REPRO_PROTEIN_LISTS/prot_list.greenEtal2018.spermatogonia.txt", what=character())
-pre<-scan("/uufs/chpc.utah.edu/common/HIPAA/u6035720/MURINAE/REPRO_PROTEIN_LISTS/prot_list.greenEtal2018.prelep.txt", what=character())
-spc<-scan("/uufs/chpc.utah.edu/common/HIPAA/u6035720/MURINAE/REPRO_PROTEIN_LISTS/prot_list.greenEtal2018.spermatocytes.txt", what=character())
-spd<-scan("/uufs/chpc.utah.edu/common/HIPAA/u6035720/MURINAE/REPRO_PROTEIN_LISTS/prot_list.greenEtal2018.spermatids.txt", what=character())
-elo<-scan("/uufs/chpc.utah.edu/common/HIPAA/u6035720/MURINAE/REPRO_PROTEIN_LISTS/prot_list.greenEtal2018.elongating.txt", what=character())
+ts<-scan("/ix3/nclark/ekopania/MURINAE_REVISIONS/REPRO_PROTEIN_LISTS/prot_list.testisSpecific.txt", what=character())
 
-ts<-scan("/uufs/chpc.utah.edu/common/HIPAA/u6035720/MURINAE/DNDS_BY_SPERM_STAGE/HYPHY/SLAC/prot_list_testisSpecific.txt", what=character())
+bd<-scan(paste("/ix3/nclark/ekopania/MURINAE_REVISIONS/REPRO_PROTEIN_LISTS/prot_list.BD.any.txt", sep="."), what=character())
+bu<-scan(paste("/ix3/nclark/ekopania/MURINAE_REVISIONS/REPRO_PROTEIN_LISTS/prot_list.BU.any.txt", sep="."), what=character())
+cg<-scan(paste("/ix3/nclark/ekopania/MURINAE_REVISIONS/REPRO_PROTEIN_LISTS/prot_list.CG.any.txt", sep="."), what=character())
+dp<-scan(paste("/ix3/nclark/ekopania/MURINAE_REVISIONS/REPRO_PROTEIN_LISTS/prot_list.DP.any.txt", sep="."), what=character())
+vp<-scan(paste("/ix3/nclark/ekopania/MURINAE_REVISIONS/REPRO_PROTEIN_LISTS/prot_list.VP.any.txt", sep="."), what=character())
+sv<-scan(paste("/ix3/nclark/ekopania/MURINAE_REVISIONS/REPRO_PROTEIN_LISTS/prot_list.SV.any.txt", sep="."), what=character())
 
 
 #Get set of protein-coding loci across all these
-loci<-Reduce(union, list(rerconverge$X, dnds$protID, posSelec$protID, bs$protID, relax$protID))
+loci<-Reduce(union, list(rerconverge$X, srv_dtMNM$protID, srv_noMNM$protID, noSRV_noMNM$protID))
 
 #Get list of tissue and cell types sets protein is in
+print("Getting tissue and cell types...")
 membership_lists<-c()
 for(i in loci){
 	groups<-c()
@@ -84,6 +94,7 @@ for(i in loci){
 }
 names(membership_lists)<-loci
 
+print("Getting molecular evolution results...")
 full_df<-c()
 for(i in loci){
 	temp_vec<-c(i, membership_lists[i])
@@ -93,48 +104,50 @@ for(i in loci){
 	} else{
 		temp_vec<-c(temp_vec, NA, NA, NA, NA, NA, NA)
 	}
-	if(i %in% dnds$protID){
-		idx<-which(dnds$protID==i)
-		temp_vec<-c(temp_vec, dnds$dN.dS[idx])
-	} else{
-		temp_vec<-c(temp_vec, NA)
-	}
-	if(i %in% posSelec$protID){
-		idx<-which(posSelec$protID==i)
-		if(posSelec$lnL[idx] >= posSelec$lnL.null[idx]){ #Make sure model converged
-			temp_vec<-c(temp_vec, posSelec$lnL[idx], posSelec$lnL.null[idx], posSelec$diff[idx], posSelec$P[idx], posSelec$p.adj[idx])
+	if(i %in% srv_dtMNM$protID){
+		idx<-which(srv_dtMNM$protID==i)
+		if(srv_dtMNM$lrt[idx] >= 0){ #Make sure model converged
+			#Header: file,mnm2,mnm3,dn/ds,lrt,pval,aic
+			temp_vec<-c(temp_vec, srv_dtMNM$dn.ds[idx], srv_dtMNM$lrt[idx], srv_dtMNM$pval[idx], srv_dtMNM$aic[idx], srv_dtMNM$mnm2[idx], srv_dtMNM$mnm3[idx])
 		} else{
-			temp_vec<-c(temp_vec, NA, NA, NA, NA, NA)
+			temp_vec<-c(temp_vec, NA, NA, NA, NA, NA, NA)
 		}
 	} else{
-		temp_vec<-c(temp_vec, NA, NA, NA, NA, NA)
+		temp_vec<-c(temp_vec, NA, NA, NA, NA, NA, NA)
 	}
-	if(i %in% bs$protID){
-		idx<-which(bs$protID==i)
-		if(bs$lnL[idx] >= bs$lnL.null[idx]){ #Make sure model converged
-			temp_vec<-c(temp_vec, bs$lnL[idx], bs$lnL.null[idx], bs$diff[idx], bs$P[idx], bs$p.adj[idx])
+	if(i %in% srv_noMNM$protID){
+		idx<-which(srv_noMNM$protID==i)
+		if(srv_noMNM$lrt[idx] >= 0){ #Make sure model converged
+			temp_vec<-c(temp_vec, srv_noMNM$dn.ds[idx], srv_noMNM$lrt[idx], srv_noMNM$pval[idx], srv_noMNM$aic[idx])
 		} else{
-			temp_vec<-c(temp_vec, NA, NA, NA, NA, NA)
+			temp_vec<-c(temp_vec, NA, NA, NA, NA)
 		}
 	} else{
-		temp_vec<-c(temp_vec, NA, NA, NA, NA, NA)
+		temp_vec<-c(temp_vec, NA, NA, NA, NA)
 	}
-	if(i %in% relax$protID){
-		idx<-which(relax$protID==i)
-		if(relax$lnL[idx] >= relax$lnL.null[idx]){ #Make sure model converged
-			temp_vec<-c(temp_vec, relax$lnL[idx], relax$lnL.null[idx], relax$diff[idx], relax$P[idx], relax$p.adj[idx])
+	if(i %in% noSRV_noMNM$protID){
+		idx<-which(noSRV_noMNM$protID==i)
+		if(noSRV_noMNM$lrt[idx] >= 0){ #Make sure model converged
+			temp_vec<-c(temp_vec, noSRV_noMNM$dn.ds[idx], noSRV_noMNM$lrt[idx], noSRV_noMNM$pval[idx], noSRV_noMNM$aic[idx])
 		} else{
-			temp_vec<-c(temp_vec, NA, NA, NA, NA, NA)
+			temp_vec<-c(temp_vec, NA, NA, NA, NA)
 		}
 	} else{
-		temp_vec<-c(temp_vec, NA, NA, NA, NA, NA)
+		temp_vec<-c(temp_vec, NA, NA, NA, NA)
+	}
+	if(i %in% model_avg_ps$protID){
+		idx<-which(model_avg_ps$protID==i)
+		temp_vec<-c(temp_vec, model_avg_ps$pval[idx], model_avg_ps$p.adj[idx])
+	} else{
+		temp_vec<-c(temp_vec, NA, NA)
 	}
 
 	full_df<-rbind(full_df, temp_vec)
 }
 
+print("Making final table...")
 full_df<-as.data.frame(full_df)
 print(dim(full_df))
-colnames(full_df)<-c("protID", "repro_gene_sets", "RERconverge_Rho", "RERconverge_Nspecies", "RERconverge_P", "RERconverge_p.adj", "RERconverge_permpval", "RERconverge_permpval.adj", "dN.dS", "lnL.m2", "lnL.m1", "m1Vm2.lrt", "m1Vm2.P", "m1Vm2.p.adj", "bs.lnL", "bs.lnL.null", "bs.lrt", "bs.P", "bs.p.adj", "relax.lnL", "relax.lnL.null", "relax.lrt", "relax.P", "relax.p.adj")
+colnames(full_df)<-c("protID", "repro_gene_sets", "RERconverge_Rho", "RERconverge_Nspecies", "RERconverge_P", "RERconverge_p.adj", "RERconverge_permpval", "RERconverge_permpval.adj", "SRV_dtMNS_dN.dS", "SRV_dtMNS_lrt", "SRV_dtMNS_pval", "SRV_dtMNS_aic", "SRV_dtMNS_mns2", "SRV_dtMNS_mns3", "SRV_noMNS_dN.dS", "SRV_noMNS_lrt", "SRV_noMNS_pval", "SRV_noMNS_aic", "noSRV_noMNS_dN.dS", "noSRV_noMNS_lrt", "noSRV_noMNS_pval", "noSRV_noMNS_aic", "model_avg_P", "model_avg_p.adj")
 
-write.csv(full_df, "all_molec_evo_results.csv", row.names=FALSE)
+write.csv(full_df, "/ix3/nclark/ekopania/MURINAE_REVISIONS/PLOT_MOLEC_EVO/all_molec_evo_results.csv", row.names=FALSE)
