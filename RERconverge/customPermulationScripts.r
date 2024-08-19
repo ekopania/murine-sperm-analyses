@@ -1,6 +1,7 @@
 #PURPOSE: Modifications to some of the permulation scripts for murine sperm project
 	#Modified getPermsBinary SSM version to set root for each gene tree, because the master tree root species is not always present in every gene tree
 	#Faster SSM permulations that do not check for permulated trees that match the true tree structure
+	#Uses master tree instead of individual gene trees to generate simulated data, because some gene trees have very short branches that cause problems
 	#Quiet versions of functions that do not print out "Species not present..." message every time
 	#Incorporated simBinPhenoRank into main wrapper functions - NOT TESTED (I abandoned this because it didn't work w/ SSM perms)
 	#Added a function to make a custom "sisters_list" for each gene tree when running SSM permulations
